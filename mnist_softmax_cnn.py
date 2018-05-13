@@ -2,6 +2,7 @@
 # test accuracy is about 98%
 
 import argparse
+import numpy as np
 import sys
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
@@ -69,10 +70,19 @@ def main(_):
 	sess.run(tf.global_variables_initializer())
 	for i in range(20000):
 		batch = mnist.train.next_batch(50)
-		if i%100 == 0:
+		if i%500 == 0:
 			train_accuracy = accuracy.eval(feed_dict={x:batch[0], y_: batch[1], keep_prob: 1.0})
 			print("step %d, training accuracy %g"%(i, train_accuracy))
+			
+			weight_matrices = [W_conv1, W_conv2, W_fc1, W_fc2]
+			for i in range(len(weight_matrices)):
+				weight_matrix = weight_matrices[i]
+				Wnp = weight_matrix.eval(session=sess)
+				if i in [0, 1]:		# if it is a convolutional layer weight matrix
+					Wnp = np.reshape(Wnp, (Wnp.shape[0] * Wnp.shape[1] * Wnp.shape[2], Wnp.shape[3]))
+				print('CONDITION NUMBER:', np.linalg.cond(Wnp))	
 		train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+	
 
 	print("test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
