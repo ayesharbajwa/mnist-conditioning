@@ -2,6 +2,7 @@
 # test accuracy is about 92%
 
 import argparse
+import numpy as np
 import sys
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
@@ -30,6 +31,10 @@ def main(_):
 	for _ in range(1000):
 		batch_xs, batch_ys = mnist.train.next_batch(100)
 		sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+
+        # TEST CONDITION NUMBER
+	Wnp = W.eval(session=sess)
+	print('CONDITION NUMBER:', np.linalg.cond(Wnp))        
 
 	# test model
 	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
