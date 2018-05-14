@@ -6,6 +6,7 @@ CODE adapted from:
 https://github.com/gongzhitaao/tensorflow-adversarial/blob/master/example/fgmt_mnist.py
 """
 
+import argparse
 from common_mnist_simple import *
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -36,7 +37,7 @@ def make_fgmt(sess, env, X_data, epochs=1, eps=0.01, batch_size=128):
     """
     Generate FGSM by running env.x_fgsm.
     """
-    print('\nMaking adversarials via FGSM')
+    print('\nMaking adversarials via FGMT')
 
     n_sample = X_data.shape[0]
     n_batch = int((n_sample + batch_size - 1) / batch_size)
@@ -58,7 +59,15 @@ def make_fgmt(sess, env, X_data, epochs=1, eps=0.01, batch_size=128):
 
 if __name__ == '__main__':
 
-    attack = 'fgsm'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('attack_type', type=str, default='fgmt',
+                        help='Type of adversarial attack (fgmt or fgsm)')
+    args = parser.parse_args()
+    attack = args.attack_type
+    allowed_attacks = ['fgmt', 'fgsm']
+    if attack not in allowed_attacks:
+        raise ValueError('Invalid argument provided')
+    print('\nAttack type: ' + attack)
     
     (X_train, y_train, X_valid, y_valid, X_test, y_test) = get_data()
     W = tf.Variable(tf.zeros([flattened_img_size, n_classes]))
