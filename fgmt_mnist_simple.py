@@ -16,6 +16,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 img_size = 28
+flattened_img_size = 784
 img_chan = 1
 n_classes = 10
 
@@ -24,16 +25,16 @@ print('\nLoading MNIST')
 
 mnist = tf.keras.datasets.mnist
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train = np.reshape(X_train, [-1, img_size, img_size, img_chan])
+X_train = np.reshape(X_train, [-1, flattened_img_size])
+X_test = np.reshape(X_test, [-1, flattened_img_size])
 X_train = X_train.astype(np.float32) / 255
-X_test = np.reshape(X_test, [-1, img_size, img_size, img_chan])
 X_test = X_test.astype(np.float32) / 255
 
 to_categorical = tf.keras.utils.to_categorical
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
 
-print('\nSpliting data')
+print('\nSplitting data')
 
 ind = np.random.permutation(X_train.shape[0])
 X_train, y_train = X_train[ind], y_train[ind]
@@ -44,22 +45,19 @@ X_valid = X_train[n:]
 X_train = X_train[:n]
 y_valid = y_train[n:]
 y_train = y_train[:n]
+W = tf.Variable(tf.zeros([flattened_img_size, n_classes]))
+b = tf.Variable(tf.zeros([n_classes]))
 
 print('\nConstruction graph')
 
-
 def model(x, logits=False, training=False):
-    with tf.variable_scope('mlp'):
-        z = tf.layers.dense(x, units=128, activation=tf.nn.relu)
-    logits_ = tf.layers.dense(z, units=10, name='logits')
-    
+    logits_ = tf.matmul(x, W) + b
     y = tf.nn.softmax(logits_, name='ybar')
 
     if logits:
         return y, logits_
     return y
 
-    # should we be using     y = tf.matmul(x, W)    somewhere instead?
 
 class Dummy:
     pass
@@ -69,8 +67,7 @@ env = Dummy()
 
 
 with tf.variable_scope('model'):
-    env.x = tf.placeholder(tf.float32, (None, img_size, img_size, img_chan),
-                           name='x')
+    env.x = tf.placeholder(tf.float32, (None, flattened_img_size), name='x')
     env.y = tf.placeholder(tf.float32, (None, n_classes), name='y')
     env.training = tf.placeholder_with_default(False, (), name='mode')
 
@@ -242,23 +239,24 @@ z0 = np.argmax(y_test, axis=1)
 z1 = np.argmax(y1, axis=1)
 z2 = np.argmax(y2, axis=1)
 
-X_tmp = np.empty((10, 28, 28))
-y_tmp = np.empty((10, 10))
+X_tmp = np.empty((n_classes, img_size, img_size))
+y_tmp = np.empty((n_classes, n_classes))
+X_adv_reshaped = np.reshape(X_adv, [-1, img_size, img_size])
 for i in range(10):
     print('Target {0}'.format(i))
     ind, = np.where(np.all([z0 == i, z1 == i, z2 != i], axis=0))
     cur = np.random.choice(ind)
-    X_tmp[i] = np.squeeze(X_adv[cur])
+    X_tmp[i] = np.squeeze(X_adv_reshaped[cur])
     y_tmp[i] = y2[cur]
 
 print('\nPlotting results')
 
-fig = plt.figure(figsize=(10, 1.2))
-gs = gridspec.GridSpec(1, 10, wspace=0.05, hspace=0.05)
+fig = plt.figure(figsize=(n_classes, 1.2))
+gs = gridspec.GridSpec(1, n_classes, wspace=0.05, hspace=0.05)
 
 label = np.argmax(y_tmp, axis=1)
 proba = np.max(y_tmp, axis=1)
-for i in range(10):
+for i in range(n_classes):
     ax = fig.add_subplot(gs[0, i])
     ax.imshow(X_tmp[i], cmap='gray', interpolation='none')
     ax.set_xticks([])
