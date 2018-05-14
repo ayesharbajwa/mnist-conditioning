@@ -5,17 +5,14 @@ Use fast gradient sign method to craft adversarial on MNIST.
 Dependencies: python3, tensorflow v1.4, numpy, matplotlib
 """
 import os
-
 import numpy as np
-
 import matplotlib
 matplotlib.use('Agg')           # noqa: E402
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-
 import tensorflow as tf
-
 from attacks import fgmt
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 img_size = 28
