@@ -11,7 +11,7 @@ matplotlib.use('Agg')           # noqa: E402
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import tensorflow as tf
-from attacks import fgmt
+from attacks import fgmt, fgm
 tf.logging.set_verbosity(tf.logging.ERROR)
 
 # Constants
@@ -152,7 +152,7 @@ def predict(sess, env, X_data, batch_size=128):
     return yval
 
 
-def plot_results(sess, env, X_test, y_test, X_adv):
+def plot_results(sess, env, X_test, y_test, X_adv, name):
     """
     Plot results and save figure
     """
@@ -192,4 +192,5 @@ def plot_results(sess, env, X_test, y_test, X_adv):
     print('\nSaving figure')
     gs.tight_layout(fig)
     os.makedirs('img', exist_ok=True)
-    plt.savefig('img/fgmt_mnist_simple.png')
+    fig_name = 'img/' + name + '_mnist_simple.png'
+    plt.savefig(fig_name)
