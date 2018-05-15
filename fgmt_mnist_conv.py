@@ -10,7 +10,9 @@ import matplotlib
 matplotlib.use('Agg')           # noqa: E402
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import pprint
 import tensorflow as tf
+from tensorflow.python import pywrap_tensorflow
 from attacks import fgmt
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -181,7 +183,32 @@ def train(sess, env, X_data, y_data, X_valid=None, y_valid=None, epochs=1,
     if hasattr(env, 'saver'):
         print('\n Saving model')
         os.makedirs('model', exist_ok=True)
-        env.saver.save(sess, 'model/{}'.format(name))
+        ckpt = env.saver.save(sess, 'model/{}'.format(name))
+        print(ckpt)
+
+    env.saver.restore(sess, ckpt)      # restore from path returned by saver
+
+    reader = pywrap_tensorflow.NewCheckpointReader(ckpt)
+    var_to_shape_map = reader.get_variable_to_shape_map()
+    print('\n\nGETTING CONDITION NUMBERS\n')
+    for key in sorted(var_to_shape_map):
+        tensor = reader.get_tensor(key)
+        if tensor.ndim > 1:
+            if tensor.ndim == 4:
+                print('4D ORIGINAL')
+                tensor = tensor.reshape((tensor.shape[0] * tensor.shape[1] * tensor.shape[2], tensor.shape[3]))
+            print('tensor name:', key)
+            print('tensor shape:', tensor.shape)
+            # print('cond number:', np.linalg.cond(tensor))
+            print('cond number (L1):', condition_number(tensor, p=1))
+            print('cond number (inf):', condition_number(tensor, p=np.inf))
+            print('cond number (fro):', condition_number(tensor, p='fro'))
+            print('\n')
+
+
+def condition_number(A, p):
+    Aplus = np.linalg.pinv(A)
+    return np.linalg.norm(A, ord=p) * np.linalg.norm(Aplus, ord=p)
 
 
 def predict(sess, env, X_data, batch_size=128):
