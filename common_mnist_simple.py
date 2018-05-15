@@ -10,7 +10,9 @@ import matplotlib
 matplotlib.use('Agg')           # noqa: E402
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import pprint
 import tensorflow as tf
+from tensorflow.python.tools import inspect_checkpoint as chkp
 from attacks import fgmt, fgm
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -53,6 +55,10 @@ def get_data():
 
 def model(x, logits=False, training=False):
     logits_ = tf.matmul(x, W) + b
+    Winit = W.initialized_value()
+    with tf.Session() as sess:
+        Weval = Winit.eval(session=sess)
+        print('W CONDITION NUMBER:', np.linalg.cond(Weval))
     y = tf.nn.softmax(logits_, name='ybar')
     if logits:
         return y, logits_
@@ -128,7 +134,14 @@ def train(sess, env, X_data, y_data, X_valid=None, y_valid=None, epochs=1,
     if hasattr(env, 'saver'):
         print('\n Saving model')
         os.makedirs('model', exist_ok=True)
-        env.saver.save(sess, 'model/{}'.format(name))
+        ckpt = env.saver.save(sess, 'model/{}'.format(name))
+        print(ckpt)
+
+    pp = pprint.PrettyPrinter()
+    # pp.pprint(env.__dict__)
+    env.saver.restore(sess, ckpt)      # restore from path returned by saver
+    # chkp.print_tensors_in_checkpoint_file(ckpt, tensor_name='', all_tensors=True)
+    # print(Variable.eval())
 
 
 def predict(sess, env, X_data, batch_size=128):
