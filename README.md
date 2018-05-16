@@ -10,10 +10,9 @@ MIT 18.0651 Final Project
 The following MNIST models are supported:
 - `simple`: single-layer softmax
 - `cnn`: multi-layer CNN
-- `resnet`: ResNet
 
 Each model's performance can be tested against the following adversarial attacks:
-- FGSM (Fast Gradient Step Method)
+- FGSM (Fast Gradient Sign Method)
 - FGMT (Fast Gradient Method with Target)
 
 The commands below will train the specified model, generate the specified adversarial examples, and test the model's performance against the generated example:
@@ -21,7 +20,8 @@ The commands below will train the specified model, generate the specified advers
 # simple model
 python adv_mnist_simple.py [fgsm|fgmt]
 
-# cnn model TODO
+# cnn model
+python fgsm_mnist_conv.py     # for FGSM
+python fgmt_mnist_conv.py     # for FGMT
 
-# resnet model TODO
 ```
