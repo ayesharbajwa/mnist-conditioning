@@ -17,7 +17,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 img_size = 28
 img_chan = 1
 n_classes = 10
-
+epsilons = [0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2]
 
 print('\nLoading MNIST')
 
@@ -238,51 +238,55 @@ print('\nEvaluating on clean data')
 
 evaluate(sess, env, X_test, y_test)
 
-print('\nGenerating adversarial data')
+for e in epsilons:
 
-X_adv = make_fgsm(sess, env, X_test, eps=0.02, epochs=12)
+    print('\nGenerating adversarial data')
 
-print('\nEvaluating on adversarial data')
+    X_adv = make_fgsm(sess, env, X_test, eps=e, epochs=12)
 
-evaluate(sess, env, X_adv, y_test)
+    print('\nEvaluating on adversarial data')
 
-print('\nRandomly sample adversarial data from each category')
+    evaluate(sess, env, X_adv, y_test)
 
-y1 = predict(sess, env, X_test)
-y2 = predict(sess, env, X_adv)
+    '''
+    print('\nRandomly sample adversarial data from each category')
 
-z0 = np.argmax(y_test, axis=1)
-z1 = np.argmax(y1, axis=1)
-z2 = np.argmax(y2, axis=1)
+    y1 = predict(sess, env, X_test)
+    y2 = predict(sess, env, X_adv)
 
-X_tmp = np.empty((10, 28, 28))
-y_tmp = np.empty((10, 10))
-for i in range(10):
-    print('Target {0}'.format(i))
-    ind, = np.where(np.all([z0 == i, z1 == i, z2 != i], axis=0))
-    cur = np.random.choice(ind)
-    X_tmp[i] = np.squeeze(X_adv[cur])
-    y_tmp[i] = y2[cur]
+    z0 = np.argmax(y_test, axis=1)
+    z1 = np.argmax(y1, axis=1)
+    z2 = np.argmax(y2, axis=1)
 
-print('\nPlotting results')
+    X_tmp = np.empty((10, 28, 28))
+    y_tmp = np.empty((10, 10))
+    for i in range(10):
+        print('Target {0}'.format(i))
+        ind, = np.where(np.all([z0 == i, z1 == i, z2 != i], axis=0))
+        cur = np.random.choice(ind)
+        X_tmp[i] = np.squeeze(X_adv[cur])
+        y_tmp[i] = y2[cur]
 
-fig = plt.figure(figsize=(10, 1.2))
-gs = gridspec.GridSpec(1, 10, wspace=0.05, hspace=0.05)
+    print('\nPlotting results')
 
-label = np.argmax(y_tmp, axis=1)
-proba = np.max(y_tmp, axis=1)
-for i in range(10):
-    ax = fig.add_subplot(gs[0, i])
-    ax.imshow(X_tmp[i], cmap='gray', interpolation='none')
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_xlabel('{0} ({1:.2f})'.format(label[i], proba[i]),
-                  fontsize=12)
+    fig = plt.figure(figsize=(10, 1.2))
+    gs = gridspec.GridSpec(1, 10, wspace=0.05, hspace=0.05)
 
-print('\nSaving figure')
+    label = np.argmax(y_tmp, axis=1)
+    proba = np.max(y_tmp, axis=1)
+    for i in range(10):
+        ax = fig.add_subplot(gs[0, i])
+        ax.imshow(X_tmp[i], cmap='gray', interpolation='none')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel('{0} ({1:.2f})'.format(label[i], proba[i]),
+                      fontsize=12)
 
-gs.tight_layout(fig)
-os.makedirs('img', exist_ok=True)
-plt.savefig('img/fgsm_mnist_conv.png')
+    print('\nSaving figure')
 
-print('\nFINISHED running FGSM MNIST for Conv')
+    gs.tight_layout(fig)
+    os.makedirs('img', exist_ok=True)
+    plt.savefig('img/fgsm_mnist_conv.png')
+    '''
+
+    print('\nFINISHED running FGSM MNIST for Conv with eps of ' + str(e))

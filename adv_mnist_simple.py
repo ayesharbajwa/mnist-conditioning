@@ -10,6 +10,8 @@ import argparse
 from common_mnist_simple import *
 tf.logging.set_verbosity(tf.logging.ERROR)
 
+epsilons = [0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2]
+
 def make_fgsm(sess, env, X_data, epochs=1, eps=0.01, batch_size=128):
     """
     Generate FGSM by running env.x_fgsm.
@@ -116,14 +118,16 @@ if __name__ == '__main__':
     print('\nEvaluating on clean data')
     evaluate(sess, env, X_test, y_test)
 
-    print('\nGenerating adversarial data')
-    if attack == 'fgmt':
-        X_adv = make_fgmt(sess, env, X_test, eps=0.02, epochs=12)
-    elif attack == 'fgsm':
-        X_adv = make_fgsm(sess, env, X_test, eps=0.02, epochs=12)
+    for e in epsilons:
 
-    print('\nEvaluating on adversarial data')
-    evaluate(sess, env, X_adv, y_test)
+        print('\nGenerating adversarial data')
+        if attack == 'fgmt':
+            X_adv = make_fgmt(sess, env, X_test, eps=e, epochs=12)
+        elif attack == 'fgsm':
+            X_adv = make_fgsm(sess, env, X_test, eps=e, epochs=12)
 
-    plot_results(sess, env, X_test, y_test, X_adv, attack)
-    print('\nFINISHED running ' + attack + ' MNIST for SIMPLE')
+        print('\nEvaluating on adversarial data')
+        evaluate(sess, env, X_adv, y_test)
+
+        plot_results(sess, env, X_test, y_test, X_adv, attack, e)
+        print('\nFINISHED running ' + attack + ' MNIST for SIMPLE with epsilon of ' + str(e))
