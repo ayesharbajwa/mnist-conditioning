@@ -170,7 +170,7 @@ def predict(sess, env, X_data, batch_size=128):
     return yval
 
 
-def plot_results(sess, env, X_test, y_test, X_adv, name):
+def plot_results(sess, env, X_test, y_test, X_adv, name, eps):
     """
     Plot results and save figure
     """
@@ -210,5 +210,5 @@ def plot_results(sess, env, X_test, y_test, X_adv, name):
     print('\nSaving figure')
     gs.tight_layout(fig)
     os.makedirs('img', exist_ok=True)
-    fig_name = 'img/' + name + '_mnist_simple.png'
+    fig_name = 'img/' + name + '_' + str(eps) + '_mnist_simple.png'
     plt.savefig(fig_name)
