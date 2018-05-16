@@ -200,6 +200,7 @@ def train(sess, env, X_data, y_data, X_valid=None, y_valid=None, epochs=1,
             print('tensor name:', key)
             print('tensor shape:', tensor.shape)
             # print('cond number:', np.linalg.cond(tensor))
+            print('cond number (L2):', condition_number(tensor, p=2))
             print('cond number (L1):', condition_number(tensor, p=1))
             print('cond number (inf):', condition_number(tensor, p=np.inf))
             print('cond number (fro):', condition_number(tensor, p='fro'))
